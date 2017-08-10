@@ -21,3 +21,5 @@ count 屏幕静止时要显示的子视图个数
 - (void)addSubViewWithSubViewArray:(NSArray *)viewArray withShowBtnCount:(int)count;
 
 因为项目比较忙，暂时还没时间做完善，效果和功能还有着明显的限制，待时间充裕再做完善封装
+
+原理地址：http://www.jianshu.com/p/e66f2cd3db14
