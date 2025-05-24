@@ -13,7 +13,7 @@
 #import "HXCamberMenu.h"
 
 @interface ViewController ()
-
+@property (nonatomic, strong) HXCamberMenu *camberMenu; // Property to hold the menu
 @end
 
 @implementation ViewController
@@ -29,12 +29,27 @@
     HXCamberMenu *view = [[HXCamberMenu alloc] initWithRadius:440 andCenterPoint:CGPointMake(self.view.frame.size.width / 2, 0) andOutsideCirCleImage:[UIImage imageNamed:@"color1"] andInsideCircleImage:[UIImage imageNamed:@"color2"] andInsideCircleMargin:80];
     
     ///添加子视图数组与界面静止时子视图个数
-    [view addSubViewWithSubViewArray:[self btnArrayCreat] withShowBtnCount:5];
+    self.camberMenu = view; // Assign to property
+    [self.camberMenu addSubViewWithSubViewArray:[self btnArrayCreat] withShowBtnCount:5];
     
-    [self.view addSubview:view];
+    [self.view addSubview:self.camberMenu];
 
+    // Add UISegmentedControl for mode switching
+    UISegmentedControl *modeSelector = [[UISegmentedControl alloc] initWithItems:@[@"SemiCircular", @"FullCircular"]];
+    modeSelector.frame = CGRectMake(20, self.view.frame.size.height - 50, self.view.frame.size.width - 40, 30); // Example frame
+    modeSelector.selectedSegmentIndex = 0; // Default to SemiCircular
+    [modeSelector addTarget:self action:@selector(modeChanged:) forControlEvents:UIControlEventValueChanged];
+    [self.view addSubview:modeSelector];
 }
 
+// Action method for UISegmentedControl
+- (void)modeChanged:(UISegmentedControl *)sender {
+    if (sender.selectedSegmentIndex == 0) {
+        self.camberMenu.menuMode = HXCamberMenuModeSemiCircular;
+    } else {
+        self.camberMenu.menuMode = HXCamberMenuModeFullCircular;
+    }
+}
 
 ///按钮数组
 - (NSArray *)btnArrayCreat{

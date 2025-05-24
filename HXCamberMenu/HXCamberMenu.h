@@ -8,7 +8,19 @@
 
 #import <UIKit/UIKit.h>
 
+// Define the new enum for menu modes
+typedef NS_ENUM(NSInteger, HXCamberMenuMode) {
+    HXCamberMenuModeSemiCircular,
+    HXCamberMenuModeFullCircular
+};
+
 @interface HXCamberMenu : UIView
+
+/**
+ Current mode of the menu (semi-circular or full-circular).
+ Defaults to HXCamberMenuModeSemiCircular.
+ */
+@property (nonatomic, assign) HXCamberMenuMode menuMode;
 
 /**
  初始化方法
