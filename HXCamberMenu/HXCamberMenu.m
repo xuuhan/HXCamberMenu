@@ -19,6 +19,7 @@
 @property (nonatomic, assign) CGFloat circleMargin;
 
 @property (nonatomic, assign) CGFloat moveNum;
+@property (nonatomic, assign) CGFloat moveAngle;
 ///移动值
 @property (nonatomic, assign) CGFloat moveX;
 ///移动结束
@@ -37,6 +38,7 @@
 @property (nonatomic, assign) CGPoint beginPoint;
 //第二触碰点
 @property (nonatomic, assign) CGPoint movePoint;
+@property (nonatomic, assign) HXCamberMenuType menuType;
 
 @end
 
@@ -45,12 +47,36 @@
 #pragma mark -- 初始化
 
 - (instancetype)initWithRadius:(CGFloat)radius andCenterPoint:(CGPoint)centerPoint andOutsideCirCleImage:(UIImage *)outsideCirCleImage andInsideCircleImage:(UIImage *)insideCirCleImage andInsideCircleMargin:(CGFloat)circleMargin{
-    
+    return [self initWithRadius:radius
+                   andCenterPoint:centerPoint
+             andOutsideCirCleImage:outsideCirCleImage
+              andInsideCircleImage:insideCirCleImage
+             andInsideCircleMargin:circleMargin
+                           menuType:HXCamberMenuTypeArc];
+}
+
+- (instancetype)initWithRadius:(CGFloat)radius
+                andCenterPoint:(CGPoint)centerPoint
+          andOutsideCirCleImage:(UIImage *)outsideCirCleImage
+           andInsideCircleImage:(UIImage *)insideCirCleImage
+          andInsideCircleMargin:(CGFloat)circleMargin
+                        menuType:(HXCamberMenuType)menuType{
+
+
+    /// 圆形模式需要保证半径在屏幕范围内，弧形模式则按传入值绘制
+    if (menuType == HXCamberMenuTypeCircle) {
+        CGFloat maxR = MIN(SCREEN_WIDTH, SCREEN_HEIGHT)/2.0 - circleMargin;
+        if (radius > maxR) {
+            radius = maxR;
+        }
+    }
+
     self = [super initWithFrame:CGRectMake(centerPoint.x - radius, centerPoint.y - radius, radius * 2, radius * 2)];
-    
+
     if(self){
         ///记录半径
         self.radius = radius;
+        self.menuType = menuType;
         ///记录距离
         self.circleMargin = circleMargin;
         ///外圆
@@ -129,91 +155,99 @@
 
 //按钮布局
 -(void)layoutBtn{
-    
-    ///中心点
-    CGFloat yy = 0.0;
-    CGFloat xx = 0.0;
-    CGFloat margin = 0.0;
-    ///子视图x中点
-    UIView *view = self.subViewArray[0];
-    CGFloat subCenterX = view.frame.size.width / 2;
-    
-    for (NSInteger i=0; i<self.subViewArray.count ;i++) {// 178,245
-        
-        margin = i * ((SCREEN_WIDTH - 20 - view.frame.size.width)/(self.showBtnCount - 1));
-        
-        xx = 10 + subCenterX + fabs(self.subViewX) + margin + self.moveNum;
-        
-        yy = sqrt((self.radius - self.circleMargin / 2) * (self.radius - self.circleMargin / 2) - (xx - self.radius) * (xx - self.radius)) + self.radius;
-        
-        if (xx >= self.radius - (self.radius - self.circleMargin / 2) && xx <= self.radius + (self.radius - self.circleMargin / 2)) {
-            
-            UIButton *button=[self.subViewArray objectAtIndex:i];
-            NSLog(@"~~~~~~~%@",button);
-            if (self.isEndMove) {
-                [UIView animateWithDuration:0.3 animations:^{
+
+    if (self.menuType == HXCamberMenuTypeArc) {
+        ///中心点
+        CGFloat yy = 0.0;
+        CGFloat xx = 0.0;
+        CGFloat margin = 0.0;
+        ///子视图x中点
+        UIView *view = self.subViewArray[0];
+        CGFloat subCenterX = view.frame.size.width / 2;
+
+        for (NSInteger i=0; i<self.subViewArray.count ;i++) {
+
+            margin = i * ((SCREEN_WIDTH - 20 - view.frame.size.width)/(self.showBtnCount - 1));
+
+            xx = 10 + subCenterX + fabs(self.subViewX) + margin + self.moveNum;
+
+            yy = sqrt((self.radius - self.circleMargin / 2) * (self.radius - self.circleMargin / 2) - (xx - self.radius) * (xx - self.radius)) + self.radius;
+
+            if (xx >= self.radius - (self.radius - self.circleMargin / 2) && xx <= self.radius + (self.radius - self.circleMargin / 2)) {
+
+                UIButton *button=[self.subViewArray objectAtIndex:i];
+                if (self.isEndMove) {
+                    [UIView animateWithDuration:0.3 animations:^{
+                        button.center=CGPointMake(xx , yy);
+                    }];
+                } else{
                     button.center=CGPointMake(xx , yy);
-                }];
-            } else{
-                button.center=CGPointMake(xx , yy);
+                }
             }
         }
-        NSLog(@"xx:%f---------yy:%f",xx,yy);
+    } else {
+        CGFloat angleStep = (2 * M_PI) / self.subViewArray.count;
+        CGFloat r = self.radius - self.circleMargin / 2;
+        for (NSInteger i = 0; i < self.subViewArray.count; i++) {
+            CGFloat angle = angleStep * i + self.moveAngle - M_PI_2;
+            CGFloat xx = self.radius + cos(angle) * r;
+            CGFloat yy = self.radius + sin(angle) * r;
+            UIButton *button = [self.subViewArray objectAtIndex:i];
+            button.center = CGPointMake(xx, yy);
+        }
     }
 }
 
 #pragma mark - 转动手势
 -(void)zhuanPgr:(UIPanGestureRecognizer *)pgr
 {
-    
     UIView *subView = self.subViewArray[0];
-    
     CGFloat subViewW = subView.frame.size.width;
-    
+
     if(pgr.state==UIGestureRecognizerStateBegan){
-        
         self.endMove = NO;
-        
         self.beginPoint=[pgr locationInView:self];
-        
     }else if (pgr.state==UIGestureRecognizerStateChanged){
         self.movePoint= [pgr locationInView:self];
-        
-        self.moveX = sqrt(fabs(self.movePoint.x - self.beginPoint.x) * fabs(self.movePoint.x - self.beginPoint.x) + fabs(self.movePoint.y - self.beginPoint.y) * fabs(self.movePoint.y - self.beginPoint.y));
-        
-        if (self.movePoint.x>self.beginPoint.x) {
-            self.moveNum += self.moveX;
-        } else{
-            self.moveNum -= self.moveX;
+
+        if (self.menuType == HXCamberMenuTypeArc) {
+            self.moveX = sqrt(fabs(self.movePoint.x - self.beginPoint.x) * fabs(self.movePoint.x - self.beginPoint.x) + fabs(self.movePoint.y - self.beginPoint.y) * fabs(self.movePoint.y - self.beginPoint.y));
+
+            if (self.movePoint.x>self.beginPoint.x) {
+                self.moveNum += self.moveX;
+            } else{
+                self.moveNum -= self.moveX;
+            }
+
+            if (self.moveNum > 0) {
+                self.moveNum = 0;
+            }
+
+            if (self.moveNum < -((SCREEN_WIDTH - 20 - subViewW)/(self.showBtnCount - 1)) * (self.subViewArray.count - self.showBtnCount)) {
+                self.moveNum = -((SCREEN_WIDTH - 20 - subViewW)/(self.showBtnCount - 1)) * (self.subViewArray.count - self.showBtnCount);
+            }
+        } else {
+            CGFloat angle1 = atan2(self.beginPoint.y - self.radius, self.beginPoint.x - self.radius);
+            CGFloat angle2 = atan2(self.movePoint.y - self.radius, self.movePoint.x - self.radius);
+            self.moveAngle += angle2 - angle1;
         }
-        
-        if (self.moveNum > 0) {
-            self.moveNum = 0;
-        }
-        
-        if (self.moveNum < -((SCREEN_WIDTH - 20 - subViewW)/(self.showBtnCount - 1)) * (self.subViewArray.count - self.showBtnCount)) {
-            self.moveNum = -((SCREEN_WIDTH - 20 - subViewW)/(self.showBtnCount - 1)) * (self.subViewArray.count - self.showBtnCount);
-        }
-        
+
         [self layoutBtn];
-        
         self.beginPoint = self.movePoint;
-        
+
     }else if (pgr.state==UIGestureRecognizerStateEnded){
-        
         self.endMove = YES;
-        
-        NSLog(@"--------%f------%f",self.moveNum,- (SCREEN_WIDTH - 20 - subViewW) / 4);
-        
-        for (int i = 0; i < self.subViewArray.count - self.showBtnCount + 1; i ++) {
-            if (self.moveNum > - (SCREEN_WIDTH - 20 - subViewW) / (self.showBtnCount - 1) + subViewW / 2 + 10 -(SCREEN_WIDTH - 20 - subViewW) / (self.showBtnCount - 1) * i){
-                self.moveNum = -(SCREEN_WIDTH - 20 - subViewW) / (self.showBtnCount - 1) * i;
-                break;
+
+        if (self.menuType == HXCamberMenuTypeArc) {
+            for (int i = 0; i < self.subViewArray.count - self.showBtnCount + 1; i ++) {
+                if (self.moveNum > - (SCREEN_WIDTH - 20 - subViewW) / (self.showBtnCount - 1) + subViewW / 2 + 10 -(SCREEN_WIDTH - 20 - subViewW) / (self.showBtnCount - 1) * i){
+                    self.moveNum = -(SCREEN_WIDTH - 20 - subViewW) / (self.showBtnCount - 1) * i;
+                    break;
+                }
             }
         }
-        
+
         [self layoutBtn];
-        
     }
 }
 
