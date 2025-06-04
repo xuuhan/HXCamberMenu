@@ -62,10 +62,13 @@
           andInsideCircleMargin:(CGFloat)circleMargin
                         menuType:(HXCamberMenuType)menuType{
 
-    ///保证在屏幕内
-    CGFloat maxR = MIN(SCREEN_WIDTH, SCREEN_HEIGHT)/2.0 - circleMargin;
-    if (radius > maxR) {
-        radius = maxR;
+
+    /// 圆形模式需要保证半径在屏幕范围内，弧形模式则按传入值绘制
+    if (menuType == HXCamberMenuTypeCircle) {
+        CGFloat maxR = MIN(SCREEN_WIDTH, SCREEN_HEIGHT)/2.0 - circleMargin;
+        if (radius > maxR) {
+            radius = maxR;
+        }
     }
 
     self = [super initWithFrame:CGRectMake(centerPoint.x - radius, centerPoint.y - radius, radius * 2, radius * 2)];

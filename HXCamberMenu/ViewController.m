@@ -42,7 +42,12 @@
     [self.menu removeFromSuperview];
 
     CGFloat radius = type == HXCamberMenuTypeArc ? 440 : MIN(SCREEN_WIDTH, SCREEN_HEIGHT)/2 - 40;
-    CGPoint center = CGPointMake(self.view.frame.size.width/2, radius);
+    CGPoint center;
+    if (type == HXCamberMenuTypeArc) {
+        center = CGPointMake(self.view.frame.size.width / 2, 0);
+    } else {
+        center = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height / 2);
+    }
 
     self.menu = [[HXCamberMenu alloc] initWithRadius:radius andCenterPoint:center andOutsideCirCleImage:[UIImage imageNamed:@"color1"] andInsideCircleImage:[UIImage imageNamed:@"color2"] andInsideCircleMargin:80 menuType:type];
 
