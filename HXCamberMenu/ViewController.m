@@ -14,25 +14,40 @@
 
 @interface ViewController ()
 
+@property (nonatomic, strong) HXCamberMenu *menu;
+
 @end
 
 @implementation ViewController
 
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
-    /*
-     输入半径、圆心、外圆图片、内圆图片、外圆与内圆距离
-     
-     半径要 > 屏幕宽度的一半
-     */
-    HXCamberMenu *view = [[HXCamberMenu alloc] initWithRadius:440 andCenterPoint:CGPointMake(self.view.frame.size.width / 2, 0) andOutsideCirCleImage:[UIImage imageNamed:@"color1"] andInsideCircleImage:[UIImage imageNamed:@"color2"] andInsideCircleMargin:80];
-    
-    ///添加子视图数组与界面静止时子视图个数
-    [view addSubViewWithSubViewArray:[self btnArrayCreat] withShowBtnCount:5];
-    
-    [self.view addSubview:view];
 
+    UISegmentedControl *segment = [[UISegmentedControl alloc] initWithItems:@[@"弧形", @"圆形"]];
+    segment.frame = CGRectMake(20, 40, 200, 30);
+    segment.selectedSegmentIndex = 0;
+    [segment addTarget:self action:@selector(modeChanged:) forControlEvents:UIControlEventValueChanged];
+    [self.view addSubview:segment];
+
+    [self setupMenuWithType:HXCamberMenuTypeArc];
+}
+
+- (void)modeChanged:(UISegmentedControl *)segment {
+    HXCamberMenuType type = segment.selectedSegmentIndex == 0 ? HXCamberMenuTypeArc : HXCamberMenuTypeCircle;
+    [self setupMenuWithType:type];
+}
+
+- (void)setupMenuWithType:(HXCamberMenuType)type {
+    [self.menu removeFromSuperview];
+
+    CGFloat radius = type == HXCamberMenuTypeArc ? 440 : MIN(SCREEN_WIDTH, SCREEN_HEIGHT)/2 - 40;
+    CGPoint center = CGPointMake(self.view.frame.size.width/2, radius);
+
+    self.menu = [[HXCamberMenu alloc] initWithRadius:radius andCenterPoint:center andOutsideCirCleImage:[UIImage imageNamed:@"color1"] andInsideCircleImage:[UIImage imageNamed:@"color2"] andInsideCircleMargin:80 menuType:type];
+
+    [self.menu addSubViewWithSubViewArray:[self btnArrayCreat] withShowBtnCount:5];
+    [self.view addSubview:self.menu];
 }
 
 

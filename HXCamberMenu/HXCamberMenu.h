@@ -8,6 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
+typedef NS_ENUM(NSInteger, HXCamberMenuType) {
+    HXCamberMenuTypeArc = 0,
+    HXCamberMenuTypeCircle
+};
+
 @interface HXCamberMenu : UIView
 
 /**
@@ -19,6 +24,16 @@
  @param insideCirCleImage 内圆图片
  @param circleMargin 外圆和内圆距离
  @return self
+ */
+- (instancetype)initWithRadius:(CGFloat)radius
+                andCenterPoint:(CGPoint)centerPoint
+          andOutsideCirCleImage:(UIImage *)outsideCirCleImage
+           andInsideCircleImage:(UIImage *)insideCirCleImage
+          andInsideCircleMargin:(CGFloat)circleMargin
+                        menuType:(HXCamberMenuType)menuType;
+
+/**
+ 兼容旧接口，默认为弧形模式
  */
 - (instancetype)initWithRadius:(CGFloat)radius andCenterPoint:(CGPoint)centerPoint andOutsideCirCleImage:(UIImage *)outsideCirCleImage andInsideCircleImage:(UIImage *)insideCirCleImage andInsideCircleMargin:(CGFloat)circleMargin;
 
